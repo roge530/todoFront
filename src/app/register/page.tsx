@@ -36,7 +36,7 @@ export default function Register() {
               formData
             );
       
-            if (response.status === 201) router.push("/");
+            if (response.status === 201) router.push("/logIn");
         } catch (error: any) {
             console.error(error);
         }
