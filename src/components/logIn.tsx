@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import Home from "./home";
 
 interface FormData {
     email: string;
@@ -55,6 +56,7 @@ export default function MyLogIn() {
             <div className="flex justify-between bg-slate-200 flex-col rounded-md items-center justify-center">
                 <div className="p-4">
                     <h1>Welcome</h1>
+                    <Home/>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
