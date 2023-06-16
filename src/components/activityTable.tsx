@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button, Modal, Tooltip } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import Cookies from 'js-cookie';
@@ -18,11 +18,27 @@ const ActivityTable: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [activities, setActivities] = useState<Activity[]>([
-        { id: "a1", name: 'Actividad 1', status: 'new', isEditMode: false },
-        { id: "b2", name: 'Actividad 2', status: 'doing', isEditMode: false },
-        { id: "c3", name: 'Actividad 3', status: 'done', isEditMode: false }
-    ]);
+    const [activities, setActivities] = useState<Activity[]>([]);
+
+    useEffect(() => {
+        const fetchActivities = async () => {
+          try {
+            const response = await fetch(`http://localhost:3002/activity/${id}`);
+            if (response.ok) {
+              const data = await response.json();
+              const activitiesWithEditMode = data.activities.map((activity: Activity) => ({
+                ...activity,
+                isEditMode: false,
+              }));
+              setActivities(activitiesWithEditMode);
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        };
+    
+        fetchActivities();
+    }, [id]);
     
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
         const updatedActivities = activities.map((activity) => 
