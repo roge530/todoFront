@@ -32,8 +32,11 @@ export default function Register() {
         event.preventDefault();
 
         try {
+            if (!process.env.API_URL || !process.env.API_PORT) {
+                throw new Error('API_URL or API_PORT is not defined');
+            }
             const response: AxiosResponse = await axios.post(
-              'http://localhost:3002/users/signUp',
+              `http://${process.env.API_URL}:${process.env.API_PORT}/users/signUp`,
               formData
             );
       
