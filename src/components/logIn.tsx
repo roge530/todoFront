@@ -4,6 +4,8 @@ import { Button, TextField } from "@mui/material"
 import axios, { AxiosResponse } from "axios";
 import Link from 'next/link'
 import { useState } from "react";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface FormData {
     email: string;
@@ -11,7 +13,7 @@ interface FormData {
 }
 
 export default function MyLogIn() {
-
+    const router = useRouter();
     const [formData, setFormData] = useState<FormData>({
         email: "",
         password: "",
@@ -34,7 +36,15 @@ export default function MyLogIn() {
                 formData
             );
 
-            if (response.status === 200) console.log(response.data);
+            if (response.status === 200) {
+                const token = response.data["token"];
+                const email = formData.email;
+                const name = response.data["name"];
+                Cookies.set("token", token, { expires: 7, sameSite: 'Strict' });
+                Cookies.set("email", email, { expires: 7, sameSite: 'Strict' });
+                Cookies.set("name", name, {expires: 7, sameSite: 'Strict'});
+                router.push("/dashboard"); 
+            }
         } catch (error: any) {
             console.error(error);
         }

@@ -1,9 +1,9 @@
 import ActivityTable from "@/components/activityTable"
+import Header from "@/components/header"
 export default function dashboard() {
     return (
         <section>
-            <h1>Welcome </h1>
-            <p>Demo</p>
+            <Header/>
             <ActivityTable></ActivityTable>
         </section>
     )

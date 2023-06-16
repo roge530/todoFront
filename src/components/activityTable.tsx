@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
+import Cookies from 'js-cookie';
 
 interface Activity {
     id: string;
@@ -12,7 +13,8 @@ interface Activity {
 }
 
 const ActivityTable: React.FC = () => {
-
+    const token = Cookies.get('token');
+    const email = Cookies.get('email');
     const [activities, setActivities] = useState<Activity[]>([
         { id: "a1", name: 'Actividad 1', status: 'new', isEditMode: false },
         { id: "b2", name: 'Actividad 2', status: 'doing', isEditMode: false },
