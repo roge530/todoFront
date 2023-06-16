@@ -24,7 +24,10 @@ const ActivityTable: React.FC = () => {
     useEffect(() => {
         const fetchActivities = async () => {
           try {
-            const response = await fetch(`http://localhost:3002/activity/${idUser}`);
+            if (!process.env.API_URL || !process.env.API_PORT) {
+                throw new Error('API_URL or API_PORT is not defined');
+            }
+            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/${idUser}`);
             if (response.ok) {
               const data = await response.json();
               const activitiesWithEditMode = data.activities.map((activity: Activity) => ({
@@ -84,7 +87,10 @@ const ActivityTable: React.FC = () => {
         if (sendChange) {
             console.log('Changes saved:', activity.name);
             try {
-                const response = await fetch('http://localhost:3002/activity/editName', {
+                if (!process.env.API_URL || !process.env.API_PORT) {
+                    throw new Error('API_URL or API_PORT is not defined');
+                }
+                const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/editName`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -121,7 +127,10 @@ const ActivityTable: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            const response = await fetch(`http://localhost:3002/activity/newActivity/${idUser}`, {
+            if (!process.env.API_URL || !process.env.API_PORT) {
+                throw new Error('API_URL or API_PORT is not defined');
+            }
+            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/newActivity/${idUser}`, {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',

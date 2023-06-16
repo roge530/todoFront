@@ -32,8 +32,12 @@ export default function MyLogIn() {
         event.preventDefault();
 
         try {
+            if (!process.env.API_URL || !process.env.API_PORT) {
+                console.log(process.env.API_URL)
+                throw new Error('API_URL or API_PORT is not defined');
+            }
             const response: AxiosResponse = await axios.post(
-                'http://localhost:3002/users/logIn',
+                `http://${process.env.API_URL}:${process.env.API_PORT}/users/logIn`,
                 formData
             );
 
