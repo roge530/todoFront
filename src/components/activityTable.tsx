@@ -8,13 +8,14 @@ import Cookies from 'js-cookie';
 interface Activity {
     id: string;
     name: string;
+    originalName: string;
     status: string;
     isEditMode: boolean;
 }
 
 const ActivityTable: React.FC = () => {
     const token = Cookies.get('token');
-    const id = Cookies.get('id');
+    const idUser = Cookies.get('id');
     const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -23,12 +24,13 @@ const ActivityTable: React.FC = () => {
     useEffect(() => {
         const fetchActivities = async () => {
           try {
-            const response = await fetch(`http://localhost:3002/activity/${id}`);
+            const response = await fetch(`http://localhost:3002/activity/${idUser}`);
             if (response.ok) {
               const data = await response.json();
               const activitiesWithEditMode = data.activities.map((activity: Activity) => ({
                 ...activity,
                 isEditMode: false,
+                originalName: activity.name,
               }));
               setActivities(activitiesWithEditMode);
             }
@@ -38,7 +40,7 @@ const ActivityTable: React.FC = () => {
         };
     
         fetchActivities();
-    }, [id]);
+    }, [idUser]);
     
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
         const updatedActivities = activities.map((activity) => 
@@ -56,17 +58,53 @@ const ActivityTable: React.FC = () => {
 
     const handleEditClick = (id: string) => {
         const updatedActivities = activities.map((activity) =>
-            activity.id === id ? { ...activity, isEditMode: true } : activity
+            activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name } : activity
         );
         setActivities(updatedActivities);
     }
 
-    const handleSaveClick = (id: string) => {
+    const handleSaveClick = async (id: string) => {
+        const activity = activities.find((activity) => activity.id === id);
+        let sendChange = false;
+
+        if (!activity) {
+            console.log('Activity not found');
+            return;
+        }
+
+        if (activity.name !== activity.originalName) {
+            console.log('Changes detected');
+            sendChange = true;
+        }
+
         const updatedActivities = activities.map((activity) =>
           activity.id === id ? { ...activity, isEditMode: false } : activity
         );
         setActivities(updatedActivities);
-        // Lógica para guardar los cambios en la API o realizar otras acciones
+        if (sendChange) {
+            console.log('Changes saved:', activity.name);
+            try {
+                const response = await fetch('http://localhost:3002/activity/editName', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idUser: idUser,
+                        idActivity: activity.id,
+                        name: activity.name,
+                    }),
+                });
+    
+                if (response.ok) {
+                    console.log('Activity name updated on the server');
+                } else {
+                    console.log('Failed to update activity name on the server');
+                }
+            } catch (error) {
+                console.log('An error occurred while sending the PATCH request:', error);
+            }
+        }
     };
     
     const handleDeleteClick = (id: string) => {
@@ -83,7 +121,7 @@ const ActivityTable: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            const response = await fetch(`http://localhost:3002/activity/newActivity/${id}`, {
+            const response = await fetch(`http://localhost:3002/activity/newActivity/${idUser}`, {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +131,7 @@ const ActivityTable: React.FC = () => {
             if (response.ok) {
                 setSuccessMessage('Activity created');
                 const data = await response.json();
-                const newActivity = { id: data.id, name, status: 'new', isEditMode: false };
+                const newActivity = { id: data.id, name, status: 'new', isEditMode: false, originalName: name };
                 setActivities((prevActivities) => prevActivities.concat(newActivity));
             }
             else setSuccessMessage('An error ocurr')
