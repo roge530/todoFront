@@ -38,10 +38,10 @@ export default function MyLogIn() {
 
             if (response.status === 200) {
                 const token = response.data["token"];
-                const email = formData.email;
+                const id = response.data["id"];
                 const name = response.data["name"];
                 Cookies.set("token", token, { expires: 7, sameSite: 'Strict' });
-                Cookies.set("email", email, { expires: 7, sameSite: 'Strict' });
+                Cookies.set("id", id, { expires: 7, sameSite: 'Strict' });
                 Cookies.set("name", name, {expires: 7, sameSite: 'Strict'});
                 router.push("/dashboard"); 
             }
