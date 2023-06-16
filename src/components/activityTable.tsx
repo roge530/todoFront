@@ -10,6 +10,7 @@ interface Activity {
     name: string;
     originalName: string;
     status: string;
+    originalStatus: string;
     isEditMode: boolean;
 }
 
@@ -34,6 +35,7 @@ const ActivityTable: React.FC = () => {
                 ...activity,
                 isEditMode: false,
                 originalName: activity.name,
+                originalStatus: activity.status,
               }));
               setActivities(activitiesWithEditMode);
             }
@@ -76,21 +78,25 @@ const ActivityTable: React.FC = () => {
         }
 
         if (activity.name !== activity.originalName) {
-            console.log('Changes detected');
+            sendChange = true;
+        }
+
+        if (activity.status !== activity.originalStatus) {
             sendChange = true;
         }
 
         const updatedActivities = activities.map((activity) =>
           activity.id === id ? { ...activity, isEditMode: false } : activity
         );
+
         setActivities(updatedActivities);
+
         if (sendChange) {
-            console.log('Changes saved:', activity.name);
             try {
                 if (!process.env.API_URL || !process.env.API_PORT) {
                     throw new Error('API_URL or API_PORT is not defined');
                 }
-                const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/editName`, {
+                const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/editActivity`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -99,11 +105,12 @@ const ActivityTable: React.FC = () => {
                         idUser: idUser,
                         idActivity: activity.id,
                         name: activity.name,
+                        status: activity.status,
                     }),
                 });
     
                 if (response.ok) {
-                    console.log('Activity name updated on the server');
+                    console.log('Activity updated on the server');
                 } else {
                     console.log('Failed to update activity name on the server');
                 }
@@ -140,7 +147,7 @@ const ActivityTable: React.FC = () => {
             if (response.ok) {
                 setSuccessMessage('Activity created');
                 const data = await response.json();
-                const newActivity = { id: data.id, name, status: 'new', isEditMode: false, originalName: name };
+                const newActivity = { id: data.id, name, status: 'new', isEditMode: false, originalName: name, originalStatus: 'new' };
                 setActivities((prevActivities) => prevActivities.concat(newActivity));
             }
             else setSuccessMessage('An error ocurr')
