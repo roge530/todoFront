@@ -4,6 +4,7 @@ import Link from 'next/link'
 import axios, { AxiosResponse } from "axios"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Home from "@/components/home";
 
 interface FormData {
     name: string;
@@ -47,6 +48,7 @@ export default function Register() {
             <div className="flex justify-between bg-slate-200 flex-col rounded-md items-center justify-center">
                 <div className="p-4">
                     <h1>Create a new account</h1>
+                    <Home/>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
@@ -87,7 +89,7 @@ export default function Register() {
                             Create account
                         </Button>
                         <Button variant="outlined" color="primary" sx={{backgroundColor: '#000'}}>
-                            <Link href="/">Already have an account?</Link>
+                            <Link href="/logIn">Already have an account?</Link>
                         </Button>
                     </div>
                 </form>
