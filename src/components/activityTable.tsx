@@ -74,7 +74,12 @@ const ActivityTable: React.FC = () => {
                 },
                 body: JSON.stringify({ name, status: 'new' }),
             });
-            if (response.ok) setSuccessMessage('Activity created');
+            if (response.ok) {
+                setSuccessMessage('Activity created');
+                const data = await response.json();
+                const newActivity = { id: data.id, name, status: 'new', isEditMode: false };
+                setActivities((prevActivities) => prevActivities.concat(newActivity));
+            }
             else setSuccessMessage('An error ocurr')
             handleClose();
             setName('');
