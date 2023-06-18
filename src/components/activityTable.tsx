@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button, Modal, Tooltip } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button, Modal, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import Cookies from 'js-cookie';
 
@@ -17,7 +17,9 @@ interface Activity {
 const ActivityTable: React.FC = () => {
     const token = Cookies.get('token');
     const idUser = Cookies.get('id');
-    const [open, setOpen] = useState(false);
+    const [openNewActModal, setOpenNewActModal] = useState(false);
+    const [openDelActDialog, setOpenDelActDialog] = useState(false);
+    const [activityToDelete, setActivityToDelete] = useState('');
     const [name, setName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [activities, setActivities] = useState<Activity[]>([]);
@@ -120,16 +122,47 @@ const ActivityTable: React.FC = () => {
         }
     };
     
-    const handleDeleteClick = (id: string) => {
-        console.log("borrando " + id);
+    const handleDeleteClick = async (id: string) => {
+        try {
+            if (!process.env.API_URL || !process.env.API_PORT) {
+                throw new Error('API_URL or API_PORT is not defined');
+            }
+            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/removeActivity/${idUser}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    activityID: id
+                }),
+            });
+
+            if (response.ok) {
+                const updatedActivities: Activity[] = activities.filter((activity: Activity) => activity.id !== id);
+                setActivities(updatedActivities);
+                handleCloseDelActDialog();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    const handleOpen = () => {
-        setOpen(true);
+    const handleOpenNewActModal = () => {
+        setOpenNewActModal(true);
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleCloseNewActModal = () => {
+        setOpenNewActModal(false);
+    }
+
+    const handleOpenDelActDialog = (idActivity: string) => {
+        setOpenDelActDialog(true);
+        setActivityToDelete(idActivity);
+    }
+
+    const handleCloseDelActDialog = () => {
+        setOpenDelActDialog(false);
+        setActivityToDelete('');
     }
 
     const handleSave = async () => {
@@ -151,7 +184,7 @@ const ActivityTable: React.FC = () => {
                 setActivities((prevActivities) => prevActivities.concat(newActivity));
             }
             else setSuccessMessage('An error ocurr')
-            handleClose();
+            handleCloseNewActModal();
             setName('');
         } catch (error) {
             console.log(error);
@@ -162,11 +195,11 @@ const ActivityTable: React.FC = () => {
         <section>
             <div>
                 <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
-                    <Button variant="contained" onClick={handleOpen}>
+                    <Button variant="contained" onClick={handleOpenNewActModal}>
                         New Activity
                     </Button>
                 </Tooltip>
-                <Modal open={open} onClose={handleClose}>
+                <Modal open={openNewActModal} onClose={handleCloseNewActModal}>
                     <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full">
                         <div className="bg-white p-4 rounded shadow">
                             <h2>New Activity</h2>
@@ -174,7 +207,7 @@ const ActivityTable: React.FC = () => {
                             <Button variant="contained" onClick={handleSave}>
                                 Save
                             </Button>
-                            <Button variant="contained" onClick={handleClose}>
+                            <Button variant="contained" onClick={handleCloseNewActModal}>
                                 Cancel
                             </Button>
                         </div>
@@ -228,13 +261,23 @@ const ActivityTable: React.FC = () => {
                                             <Button onClick={() => handleEditClick(activity.id)}>Edit</Button>
                                         )
                                     }
-                                    <Button onClick={() => handleDeleteClick(activity.id)}>Delete</Button>
+                                    <Button onClick={() => handleOpenDelActDialog(activity.id)}>Delete</Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Dialog open={openDelActDialog}>
+                <DialogTitle>Confirmation</DialogTitle>
+                <DialogContent>
+                    <p>Are you sure that you want to delete this activity?</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDelActDialog} color='primary'>Cancel</Button>
+                    <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
+                </DialogActions>
+            </Dialog>
         </section>
     )
 }
