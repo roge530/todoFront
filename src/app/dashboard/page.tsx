@@ -1,4 +1,3 @@
-'use client'
 import ActivityTable from "@/components/activityTable"
 import Header from "@/components/header"
 export default function dashboard() {
