@@ -7,8 +7,8 @@ export default function middlewere(req:NextRequest) {
 
     if (req.nextUrl.pathname.startsWith('/logIn') && !verifiedToken) return
     
-    if (req.url.includes('/logIn') && verifiedToken) return NextResponse.redirect(new URL('/dashboard', req.url))
-    if (!verifiedToken) return NextResponse.redirect(new URL('/logIn', req.url))
+    if (req.url.includes('/logIn') && verifiedToken) return NextResponse.rewrite(new URL('/dashboard', req.url))
+    if (!verifiedToken) return NextResponse.rewrite(new URL('/logIn', req.url))
 }
 
 export const config = {
