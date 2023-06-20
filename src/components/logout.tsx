@@ -11,7 +11,8 @@ const Logout: React.FC = () => {
         Cookies.remove('token');
         Cookies.remove('id');
         Cookies.remove('name');
-        router.push("/logIn"); 
+        router.push("/"); 
+        router.refresh();
     };
     return (
         <Button variant="contained" onClick={handleLogout}>

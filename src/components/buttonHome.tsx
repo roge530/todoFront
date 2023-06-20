@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { useRouter } from "next/navigation";
 
-const Home: React.FC = () => {
+const ButtonHome: React.FC = () => {
     const router = useRouter();
     const handleClick = () => {
         router.push('/');
@@ -16,4 +16,4 @@ const Home: React.FC = () => {
     )
 }
 
-export default Home;
+export default ButtonHome;
