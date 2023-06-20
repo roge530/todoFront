@@ -1,21 +1,18 @@
 'use client'
 
 import { Button, TextField } from "@mui/material"
-import axios, { AxiosResponse } from "axios";
 import Link from 'next/link'
 import { useState } from "react";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Home from "./home";
-
-interface FormData {
-    email: string;
-    password: string;
-}
+import Login from "@/lib/users/create";
+import { LoginForm } from "@/interfaces/users";
+import ErrorModal from "./errorModal";
 
 export default function MyLogIn() {
     const router = useRouter();
-    const [formData, setFormData] = useState<FormData>({
+    const [errorMessage, setErrorMessage] = useState('');
+    const [formData, setFormData] = useState<LoginForm>({
         email: "",
         password: "",
     });
@@ -30,30 +27,14 @@ export default function MyLogIn() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                console.log(process.env.API_URL)
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response: AxiosResponse = await axios.post(
-                `http://${process.env.API_URL}:${process.env.API_PORT}/users/logIn`,
-                formData
-            );
-
-            if (response.status === 200) {
-                const token = response.data["token"];
-                const id = response.data["id"];
-                const name = response.data["name"];
-                Cookies.set("token", token, { expires: 7, sameSite: 'Strict' });
-                Cookies.set("id", id, { expires: 7, sameSite: 'Strict' });
-                Cookies.set("name", name, {expires: 7, sameSite: 'Strict'});
-                router.push("/dashboard"); 
-            }
-        } catch (error: any) {
-            console.error(error);
-        }
+        let result = await Login(formData);
+        if (result.success) router.push("/dashboard");
+        else setErrorMessage(result.errorMessage || 'Unknown error occurred');
     };
+
+    const afterCloseModal = () => {
+        setErrorMessage('');
+    }
 
     return (
         <section className="flex items-center justify-center h-screen">
@@ -97,6 +78,7 @@ export default function MyLogIn() {
                     </div>
                 </form>
             </div>
+            {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
         </section>
     )
 }
