@@ -59,7 +59,7 @@ const ActivityTable: React.FC = () => {
 
     const handleEditClick = (id: string) => {
         const updatedActivities = activities.map((activity) =>
-            activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name } : activity
+            activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name, originalStatus: activity.status } : activity
         );
         setActivities(updatedActivities);
     }
@@ -208,7 +208,7 @@ const ActivityTable: React.FC = () => {
                     </div>
                 </Modal>
             </div>
-            <TableContainer>
+            <TableContainer className="bg-gray-300">
                 <Table>
 
                     <TableHead>
@@ -239,9 +239,9 @@ const ActivityTable: React.FC = () => {
                                             value={activity.status}
                                             onChange={(event) => handleStatusChange(event, activity.id)}
                                         >
-                                            <MenuItem value="new">New</MenuItem>
-                                            <MenuItem value="doing">Doing</MenuItem>
-                                            <MenuItem value="done">Done</MenuItem>
+                                            <MenuItem value="new">new</MenuItem>
+                                            <MenuItem value="doing">doing</MenuItem>
+                                            <MenuItem value="done">done</MenuItem>
                                         </Select>
                                         ) : (
                                             activity.status
