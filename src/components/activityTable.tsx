@@ -4,15 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button, Modal, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import Cookies from 'js-cookie';
-
-interface Activity {
-    id: string;
-    name: string;
-    originalName: string;
-    status: string;
-    originalStatus: string;
-    isEditMode: boolean;
-}
+import { Activity } from '@/interfaces/activities';
+import GetAllActivities from '@/lib/activities/read';
+import ErrorModal from './errorModal';
 
 const ActivityTable: React.FC = () => {
     const token = Cookies.get('token');
@@ -23,31 +17,31 @@ const ActivityTable: React.FC = () => {
     const [name, setName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         const fetchActivities = async () => {
-          try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
+            if (idUser){
+                let result = await GetAllActivities(idUser);
+                if (result.success) {
+                    const activitiesWithEditMode = result.activitiesData.map((activity: Activity) => ({
+                        ...activity,
+                        isEditMode: false,
+                        originalName: activity.name,
+                        originalStatus: activity.status,
+                    }));
+                    setActivities(activitiesWithEditMode);
+                }
+                else setErrorMessage(result.errorMessage || 'Unknown error occurred');
             }
-            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/${idUser}`);
-            if (response.ok) {
-              const data = await response.json();
-              const activitiesWithEditMode = data.activities.map((activity: Activity) => ({
-                ...activity,
-                isEditMode: false,
-                originalName: activity.name,
-                originalStatus: activity.status,
-              }));
-              setActivities(activitiesWithEditMode);
-            }
-          } catch (error) {
-            console.log(error);
-          }
         };
     
         fetchActivities();
     }, [idUser]);
+
+    const afterCloseModal = () => {
+        setErrorMessage('');
+    }
     
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
         const updatedActivities = activities.map((activity) => 
@@ -65,7 +59,7 @@ const ActivityTable: React.FC = () => {
 
     const handleEditClick = (id: string) => {
         const updatedActivities = activities.map((activity) =>
-            activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name } : activity
+            activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name, originalStatus: activity.status } : activity
         );
         setActivities(updatedActivities);
     }
@@ -75,7 +69,7 @@ const ActivityTable: React.FC = () => {
         let sendChange = false;
 
         if (!activity) {
-            console.log('Activity not found');
+            setErrorMessage('Activity not found');
             return;
         }
 
@@ -214,7 +208,7 @@ const ActivityTable: React.FC = () => {
                     </div>
                 </Modal>
             </div>
-            <TableContainer>
+            <TableContainer className="bg-gray-300">
                 <Table>
 
                     <TableHead>
@@ -245,9 +239,9 @@ const ActivityTable: React.FC = () => {
                                             value={activity.status}
                                             onChange={(event) => handleStatusChange(event, activity.id)}
                                         >
-                                            <MenuItem value="new">New</MenuItem>
-                                            <MenuItem value="doing">Doing</MenuItem>
-                                            <MenuItem value="done">Done</MenuItem>
+                                            <MenuItem value="new">new</MenuItem>
+                                            <MenuItem value="doing">doing</MenuItem>
+                                            <MenuItem value="done">done</MenuItem>
                                         </Select>
                                         ) : (
                                             activity.status
@@ -278,6 +272,7 @@ const ActivityTable: React.FC = () => {
                     <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
                 </DialogActions>
             </Dialog>
+            {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
         </section>
     )
 }
