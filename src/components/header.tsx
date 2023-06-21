@@ -12,10 +12,12 @@ export default function Header() {
         setName(cookieName || '');
     }, []);
     return (
-        <div>
-            <h1>Welcome {name}</h1>
-            <ButtonHome/>
-            <Logout/>
+        <div className="flex items-center justify-between">
+            <h1 className="mr-auto">Welcome {name}</h1>
+            <div>
+                <ButtonHome />
+                <Logout />
+            </div>
         </div>
     )
 }

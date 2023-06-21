@@ -1,20 +1,17 @@
 'use client'
 import { Button, TextField } from "@mui/material"
 import Link from 'next/link'
-import axios, { AxiosResponse } from "axios"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ButtonHome from "@/components/buttonHome";
-
-interface FormData {
-    name: string;
-    email: string;
-    password: string;
-}
+import { RegisterForm } from "@/interfaces/users";
+import RegisterUser from "@/lib/users/create";
+import ErrorModal from "@/components/errorModal";
 
 export default function Register() {
     const router = useRouter();
-    const [formData, setFormData] = useState<FormData>({
+    const [errorMessage, setErrorMessage] = useState('');
+    const [formData, setFormData] = useState<RegisterForm>({
         name: "",
         email: "",
         password: "",
@@ -31,72 +28,71 @@ export default function Register() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response: AxiosResponse = await axios.post(
-              `http://${process.env.API_URL}:${process.env.API_PORT}/users/signUp`,
-              formData
-            );
-      
-            if (response.status === 201) router.push("/logIn");
-        } catch (error: any) {
-            console.error(error);
-        }
+        let result = await RegisterUser(formData);
+        if (result.success) router.push("/logIn");
+        else setErrorMessage(result.errorMessage || 'Unknown error occurred');
+    }
+
+    const afterCloseModal = () => {
+        setErrorMessage('');
     }
 
     return (
         <section className="flex items-center justify-center h-screen">
-            <div className="flex justify-between bg-slate-200 flex-col rounded-md items-center justify-center">
-                <div className="p-4">
-                    <h1>Create a new account</h1>
+            <div className="border-2 border-rose-500 p-4">
+                <div className="px-4 py-2">
                     <ButtonHome/>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    <div className="p-4">
-                        <TextField
-                            required
-                            label="Name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                        />
+                    <div className="flex flex-row items-center justify-evenly px-4 py-2">
+                            <TextField
+                                required
+                                label="Name"
+                                name="name"
+                                variant="filled"
+                                color="warning"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="bg-rose-800 text-white mx-2 my-2"
+                            />
+
+                            <TextField
+                                required
+                                label="Email"
+                                name="email"
+                                variant="filled"
+                                color="warning"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="bg-rose-800 text-white mx-2 my-2"
+                            />
+
+                            <TextField
+                                required
+                                label="Password"
+                                type="password"
+                                name="password"
+                                variant="filled"
+                                color="warning"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="bg-rose-800 text-white mx-2 my-2"
+                            />
                     </div>
-                    <div className="p-4">
-                        <TextField
-                            required
-                            label="Email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className="p-4">
-                        <TextField
-                            required
-                            label="Password"
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className="p-4">
+                    <div className="flex justify-between px-4 py-2">
+                        <Button className="flex bg-rose-700 text-white mx-2 my-2">
+                            <Link href="/login">Already have an account?</Link>
+                        </Button>
                         <Button
                             type="submit"
-                            variant="outlined"
-                            color="primary"
-                            sx={{ backgroundColor: '#000' }}
+                            className="bg-rose-700 text-white mx-2 my-2"
                         >
                             Create account
-                        </Button>
-                        <Button variant="outlined" color="primary" sx={{backgroundColor: '#000'}}>
-                            <Link href="/logIn">Already have an account?</Link>
                         </Button>
                     </div>
                 </form>
             </div>
+            {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
         </section>
     )
 }

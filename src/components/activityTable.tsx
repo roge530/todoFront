@@ -7,6 +7,9 @@ import Cookies from 'js-cookie';
 import { Activity } from '@/interfaces/activities';
 import GetAllActivities from '@/lib/activities/read';
 import ErrorModal from './errorModal';
+import UpdateActivity from '@/lib/activities/update';
+import DeleteActivity from '@/lib/activities/delete';
+import CreateActivity from '@/lib/activities/create';
 
 const ActivityTable: React.FC = () => {
     const token = Cookies.get('token');
@@ -19,6 +22,7 @@ const ActivityTable: React.FC = () => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [errorMessage, setErrorMessage] = useState('');
 
+    //Get all activities
     useEffect(() => {
         const fetchActivities = async () => {
             if (idUser){
@@ -39,10 +43,12 @@ const ActivityTable: React.FC = () => {
         fetchActivities();
     }, [idUser]);
 
+    //Clean error message after modal
     const afterCloseModal = () => {
         setErrorMessage('');
     }
     
+    //Updates locally the name of an activity
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
         const updatedActivities = activities.map((activity) => 
             activity.id === id ? {...activity, name: event.target.value} : activity
@@ -50,6 +56,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     };
 
+    //Updates locally the status of an activity
     const handleStatusChange = (event: SelectChangeEvent<string>, id: string) => {
         const updatedActivities = activities.map((activity) =>
             activity.id === id ? {...activity, status: event.target.value as string} : activity
@@ -57,6 +64,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     };
 
+    //Activates edit mode
     const handleEditClick = (id: string) => {
         const updatedActivities = activities.map((activity) =>
             activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name, originalStatus: activity.status } : activity
@@ -64,6 +72,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     }
 
+    //Send updated activity
     const handleSaveClick = async (id: string) => {
         const activity = activities.find((activity) => activity.id === id);
         let sendChange = false;
@@ -87,57 +96,22 @@ const ActivityTable: React.FC = () => {
 
         setActivities(updatedActivities);
 
-        if (sendChange) {
-            try {
-                if (!process.env.API_URL || !process.env.API_PORT) {
-                    throw new Error('API_URL or API_PORT is not defined');
-                }
-                const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/editActivity`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        idUser: idUser,
-                        idActivity: activity.id,
-                        name: activity.name,
-                        status: activity.status,
-                    }),
-                });
-    
-                if (response.ok) {
-                    console.log('Activity updated on the server');
-                } else {
-                    console.log('Failed to update activity name on the server');
-                }
-            } catch (error) {
-                console.log('An error occurred while sending the PATCH request:', error);
-            }
+        if (sendChange && idUser) {
+            let result = await UpdateActivity(idUser, activity.id, activity.name, activity.status)
+            if (!result.success) setErrorMessage(result.errorMessage || 'Unknown error occurred'); 
         }
     };
     
+    //Delete an activity
     const handleDeleteClick = async (id: string) => {
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/removeActivity/${idUser}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    activityID: id
-                }),
-            });
-
-            if (response.ok) {
+        if (idUser) {
+            let result = await DeleteActivity(idUser, id);
+            if (result.success) {
                 const updatedActivities: Activity[] = activities.filter((activity: Activity) => activity.id !== id);
                 setActivities(updatedActivities);
                 handleCloseDelActDialog();
             }
-        } catch (error) {
-            console.error(error);
+            else setErrorMessage(result.errorMessage || 'Unknown error occurred');
         }
     }
 
@@ -160,119 +134,128 @@ const ActivityTable: React.FC = () => {
     }
 
     const handleSave = async () => {
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/newActivity/${idUser}`, {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, status: 'new' }),
-            });
-            if (response.ok) {
+        if (idUser) {
+            let result = await CreateActivity(idUser, name, 'new');
+            if (result.success) {
                 setSuccessMessage('Activity created');
-                const data = await response.json();
-                const newActivity = { id: data.id, name, status: 'new', isEditMode: false, originalName: name, originalStatus: 'new' };
+                const newActivity = { id: result.newActivityID, name, status: 'new', isEditMode: false, originalName: name, originalStatus: 'new' };
                 setActivities((prevActivities) => prevActivities.concat(newActivity));
             }
-            else setSuccessMessage('An error ocurr')
+            else {
+                setSuccessMessage('An error ocurr')
+                setErrorMessage(result.errorMessage || 'Unknown error occurred');
+            }
             handleCloseNewActModal();
             setName('');
-        } catch (error) {
-            console.log(error);
         }
     }
 
     return (
-        <section>
+        <section className='flex justify-center items-center h-screen'>
             <div>
-                <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
-                    <Button variant="contained" onClick={handleOpenNewActModal}>
-                        New Activity
-                    </Button>
-                </Tooltip>
-                <Modal open={openNewActModal} onClose={handleCloseNewActModal}>
-                    <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full">
-                        <div className="bg-white p-4 rounded shadow">
-                            <h2>New Activity</h2>
-                            <TextField value={name} onChange={(e) => setName(e.target.value)} />
-                            <Button variant="contained" onClick={handleSave}>
-                                Save
-                            </Button>
-                            <Button variant="contained" onClick={handleCloseNewActModal}>
-                                Cancel
-                            </Button>
+                <div className='flex justify-end'>
+                    <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
+                        <Button variant="contained" onClick={handleOpenNewActModal} className="bg-gray-700 text-white">
+                            New Activity
+                        </Button>
+                    </Tooltip>
+                    <Modal open={openNewActModal} onClose={handleCloseNewActModal}>
+                        <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full">
+                            <div className="bg-gray-800 p-4 rounded shadow text-white">
+                            <h2 className="text-white px-2">New Activity</h2>
+                            <div className='flex flex-row item-center '>
+                                <div className='h-full w-full px-2 my-2'>
+                                    <TextField
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="bg-gray-200 text-black"
+                                    />
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <Button variant="contained" className="bg-gray-700 mb-2 w-full" onClick={handleSave}>
+                                    Save
+                                    </Button>
+                                    <Button
+                                    variant="contained"
+                                    className="bg-gray-700 w-full"
+                                    onClick={handleCloseNewActModal}
+                                    >
+                                    Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                            </div>
                         </div>
-                    </div>
-                </Modal>
-            </div>
-            <TableContainer className="bg-gray-300">
-                <Table>
+                    </Modal>
+                </div>
 
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Activity</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
+                <TableContainer className="bg-gray-300">
+                    <Table>
 
-                    <TableBody>
-                        {activities.map((activity) => (
-                            <TableRow key={activity.id}>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                        <TextField
-                                            value={activity.name}
-                                            onChange={(event) => handleNameChange(event, activity.id)}
-                                        />
-                                        ) : (
-                                            activity.name
-                                        )
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                        <Select 
-                                            value={activity.status}
-                                            onChange={(event) => handleStatusChange(event, activity.id)}
-                                        >
-                                            <MenuItem value="new">new</MenuItem>
-                                            <MenuItem value="doing">doing</MenuItem>
-                                            <MenuItem value="done">done</MenuItem>
-                                        </Select>
-                                        ) : (
-                                            activity.status
-                                        )
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                            <Button onClick={() => handleSaveClick(activity.id)}>Save</Button>
-                                        ) : (
-                                            <Button onClick={() => handleEditClick(activity.id)}>Edit</Button>
-                                        )
-                                    }
-                                    <Button onClick={() => handleOpenDelActDialog(activity.id)}>Delete</Button>
-                                </TableCell>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Activity</TableCell>
+                                <TableCell>Status</TableCell>
+                                <TableCell>Actions</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <Dialog open={openDelActDialog}>
-                <DialogTitle>Confirmation</DialogTitle>
-                <DialogContent>
-                    <p>Are you sure that you want to delete this activity?</p>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDelActDialog} color='primary'>Cancel</Button>
-                    <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
-                </DialogActions>
-            </Dialog>
-            {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
+                        </TableHead>
+
+                        <TableBody>
+                            {activities.map((activity) => (
+                                <TableRow key={activity.id}>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                            <TextField
+                                                value={activity.name}
+                                                onChange={(event) => handleNameChange(event, activity.id)}
+                                            />
+                                            ) : (
+                                                activity.name
+                                            )
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                            <Select 
+                                                value={activity.status}
+                                                onChange={(event) => handleStatusChange(event, activity.id)}
+                                            >
+                                                <MenuItem value="new">new</MenuItem>
+                                                <MenuItem value="doing">doing</MenuItem>
+                                                <MenuItem value="done">done</MenuItem>
+                                            </Select>
+                                            ) : (
+                                                activity.status
+                                            )
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                                <Button onClick={() => handleSaveClick(activity.id)}>Save</Button>
+                                            ) : (
+                                                <Button onClick={() => handleEditClick(activity.id)}>Edit</Button>
+                                            )
+                                        }
+                                        <Button onClick={() => handleOpenDelActDialog(activity.id)}>Delete</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                <Dialog open={openDelActDialog}>
+                    <DialogTitle>Confirmation</DialogTitle>
+                    <DialogContent>
+                        <p>Are you sure that you want to delete this activity?</p>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDelActDialog} color='primary'>Cancel</Button>
+                        <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
+                    </DialogActions>
+                </Dialog>
+                {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
+            </div>
         </section>
     )
 }

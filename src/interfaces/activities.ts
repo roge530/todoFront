@@ -12,3 +12,9 @@ export interface GetActivitiesResult {
     activitiesData: any;
     errorMessage?: string;
 }
+
+export interface newActivity {
+    success: boolean;
+    newActivityID: string;
+    errorMessage?: string;
+}

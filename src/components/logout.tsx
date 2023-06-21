@@ -15,7 +15,7 @@ const Logout: React.FC = () => {
         router.refresh();
     };
     return (
-        <Button variant="contained" onClick={handleLogout}>
+        <Button variant="contained" onClick={handleLogout}  className="bg-red-600 text-white">
             Logout
         </Button>
     )

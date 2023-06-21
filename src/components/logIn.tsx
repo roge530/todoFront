@@ -4,11 +4,11 @@ import { Button, TextField } from "@mui/material"
 import Link from 'next/link'
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Login from "@/lib/users/create";
+import Login from "@/lib/users/read";
 import { LoginForm } from "@/interfaces/users";
 import ErrorModal from "./errorModal";
 
-export default function MyLogIn() {
+export default function MyLogin() {
     const router = useRouter();
     const [errorMessage, setErrorMessage] = useState('');
     const [formData, setFormData] = useState<LoginForm>({
@@ -46,8 +46,11 @@ export default function MyLogIn() {
                         required
                         label="Email"
                         name="email"
+                        variant="filled"
+                        color="warning"
                         value={formData.email}
                         onChange={handleChange}
+                        className="bg-rose-800 text-white mx-2 my-2"
                     />
                 </div>
                 <div className="p-4">
@@ -56,21 +59,22 @@ export default function MyLogIn() {
                         label="Password"
                         name="password"
                         type="password"
+                        variant="filled"
+                        color="warning"
                         value={formData.password}
                         onChange={handleChange}
+                        className="bg-rose-800 text-white mx-2 my-2"
                     />
                 </div>
-                <div className="p-4">
+                <div className="flex justify-between p-4">
+                    <Button  className="bg-rose-700 text-white mx-2 my-2">
+                        <Link href="/register">Register</Link>
+                    </Button>
                     <Button 
                         type="submit"
-                        variant="outlined"
-                        color="primary"
-                        sx={{backgroundColor: '#000'}}
+                        className="bg-rose-700 text-white mx-2 my-2"
                     >
                         Log In
-                    </Button>
-                    <Button  variant="outlined" color="primary" sx={{backgroundColor: '#000'}}>
-                        <Link href="/register">Register</Link>
                     </Button>
                 </div>
             </form>
