@@ -151,93 +151,111 @@ const ActivityTable: React.FC = () => {
     }
 
     return (
-        <section>
+        <section className='flex justify-center items-center h-screen'>
             <div>
-                <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
-                    <Button variant="contained" onClick={handleOpenNewActModal}>
-                        New Activity
-                    </Button>
-                </Tooltip>
-                <Modal open={openNewActModal} onClose={handleCloseNewActModal}>
-                    <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full">
-                        <div className="bg-white p-4 rounded shadow">
-                            <h2>New Activity</h2>
-                            <TextField value={name} onChange={(e) => setName(e.target.value)} />
-                            <Button variant="contained" onClick={handleSave}>
-                                Save
-                            </Button>
-                            <Button variant="contained" onClick={handleCloseNewActModal}>
-                                Cancel
-                            </Button>
+                <div className='flex justify-end'>
+                    <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
+                        <Button variant="contained" onClick={handleOpenNewActModal} className="bg-gray-700 text-white">
+                            New Activity
+                        </Button>
+                    </Tooltip>
+                    <Modal open={openNewActModal} onClose={handleCloseNewActModal}>
+                        <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full">
+                            <div className="bg-gray-800 p-4 rounded shadow text-white">
+                            <h2 className="text-white px-2">New Activity</h2>
+                            <div className='flex flex-row item-center '>
+                                <div className='h-full w-full px-2 my-2'>
+                                    <TextField
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="bg-gray-200 text-black"
+                                    />
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <Button variant="contained" className="bg-gray-700 mb-2 w-full" onClick={handleSave}>
+                                    Save
+                                    </Button>
+                                    <Button
+                                    variant="contained"
+                                    className="bg-gray-700 w-full"
+                                    onClick={handleCloseNewActModal}
+                                    >
+                                    Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                            </div>
                         </div>
-                    </div>
-                </Modal>
-            </div>
-            <TableContainer className="bg-gray-300">
-                <Table>
+                    </Modal>
+                </div>
 
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Activity</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
+                <TableContainer className="bg-gray-300">
+                    <Table>
 
-                    <TableBody>
-                        {activities.map((activity) => (
-                            <TableRow key={activity.id}>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                        <TextField
-                                            value={activity.name}
-                                            onChange={(event) => handleNameChange(event, activity.id)}
-                                        />
-                                        ) : (
-                                            activity.name
-                                        )
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                        <Select 
-                                            value={activity.status}
-                                            onChange={(event) => handleStatusChange(event, activity.id)}
-                                        >
-                                            <MenuItem value="new">new</MenuItem>
-                                            <MenuItem value="doing">doing</MenuItem>
-                                            <MenuItem value="done">done</MenuItem>
-                                        </Select>
-                                        ) : (
-                                            activity.status
-                                        )
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {activity.isEditMode ? (
-                                            <Button onClick={() => handleSaveClick(activity.id)}>Save</Button>
-                                        ) : (
-                                            <Button onClick={() => handleEditClick(activity.id)}>Edit</Button>
-                                        )
-                                    }
-                                    <Button onClick={() => handleOpenDelActDialog(activity.id)}>Delete</Button>
-                                </TableCell>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Activity</TableCell>
+                                <TableCell>Status</TableCell>
+                                <TableCell>Actions</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <Dialog open={openDelActDialog}>
-                <DialogTitle>Confirmation</DialogTitle>
-                <DialogContent>
-                    <p>Are you sure that you want to delete this activity?</p>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDelActDialog} color='primary'>Cancel</Button>
-                    <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
-                </DialogActions>
-            </Dialog>
-            {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
+                        </TableHead>
+
+                        <TableBody>
+                            {activities.map((activity) => (
+                                <TableRow key={activity.id}>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                            <TextField
+                                                value={activity.name}
+                                                onChange={(event) => handleNameChange(event, activity.id)}
+                                            />
+                                            ) : (
+                                                activity.name
+                                            )
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                            <Select 
+                                                value={activity.status}
+                                                onChange={(event) => handleStatusChange(event, activity.id)}
+                                            >
+                                                <MenuItem value="new">new</MenuItem>
+                                                <MenuItem value="doing">doing</MenuItem>
+                                                <MenuItem value="done">done</MenuItem>
+                                            </Select>
+                                            ) : (
+                                                activity.status
+                                            )
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {activity.isEditMode ? (
+                                                <Button onClick={() => handleSaveClick(activity.id)}>Save</Button>
+                                            ) : (
+                                                <Button onClick={() => handleEditClick(activity.id)}>Edit</Button>
+                                            )
+                                        }
+                                        <Button onClick={() => handleOpenDelActDialog(activity.id)}>Delete</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                <Dialog open={openDelActDialog}>
+                    <DialogTitle>Confirmation</DialogTitle>
+                    <DialogContent>
+                        <p>Are you sure that you want to delete this activity?</p>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDelActDialog} color='primary'>Cancel</Button>
+                        <Button onClick={() => handleDeleteClick(activityToDelete)} color='primary' autoFocus>Confirm</Button>
+                    </DialogActions>
+                </Dialog>
+                {errorMessage && <ErrorModal message={errorMessage} afterClose={afterCloseModal}/>}
+            </div>
         </section>
     )
 }
