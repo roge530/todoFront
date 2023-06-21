@@ -7,6 +7,9 @@ import Cookies from 'js-cookie';
 import { Activity } from '@/interfaces/activities';
 import GetAllActivities from '@/lib/activities/read';
 import ErrorModal from './errorModal';
+import UpdateActivity from '@/lib/activities/update';
+import DeleteActivity from '@/lib/activities/delete';
+import CreateActivity from '@/lib/activities/create';
 
 const ActivityTable: React.FC = () => {
     const token = Cookies.get('token');
@@ -19,6 +22,7 @@ const ActivityTable: React.FC = () => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [errorMessage, setErrorMessage] = useState('');
 
+    //Get all activities
     useEffect(() => {
         const fetchActivities = async () => {
             if (idUser){
@@ -39,10 +43,12 @@ const ActivityTable: React.FC = () => {
         fetchActivities();
     }, [idUser]);
 
+    //Clean error message after modal
     const afterCloseModal = () => {
         setErrorMessage('');
     }
     
+    //Updates locally the name of an activity
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
         const updatedActivities = activities.map((activity) => 
             activity.id === id ? {...activity, name: event.target.value} : activity
@@ -50,6 +56,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     };
 
+    //Updates locally the status of an activity
     const handleStatusChange = (event: SelectChangeEvent<string>, id: string) => {
         const updatedActivities = activities.map((activity) =>
             activity.id === id ? {...activity, status: event.target.value as string} : activity
@@ -57,6 +64,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     };
 
+    //Activates edit mode
     const handleEditClick = (id: string) => {
         const updatedActivities = activities.map((activity) =>
             activity.id === id ? { ...activity, isEditMode: true, originalName: activity.name, originalStatus: activity.status } : activity
@@ -64,6 +72,7 @@ const ActivityTable: React.FC = () => {
         setActivities(updatedActivities);
     }
 
+    //Send updated activity
     const handleSaveClick = async (id: string) => {
         const activity = activities.find((activity) => activity.id === id);
         let sendChange = false;
@@ -87,57 +96,22 @@ const ActivityTable: React.FC = () => {
 
         setActivities(updatedActivities);
 
-        if (sendChange) {
-            try {
-                if (!process.env.API_URL || !process.env.API_PORT) {
-                    throw new Error('API_URL or API_PORT is not defined');
-                }
-                const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/editActivity`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        idUser: idUser,
-                        idActivity: activity.id,
-                        name: activity.name,
-                        status: activity.status,
-                    }),
-                });
-    
-                if (response.ok) {
-                    console.log('Activity updated on the server');
-                } else {
-                    console.log('Failed to update activity name on the server');
-                }
-            } catch (error) {
-                console.log('An error occurred while sending the PATCH request:', error);
-            }
+        if (sendChange && idUser) {
+            let result = await UpdateActivity(idUser, activity.id, activity.name, activity.status)
+            if (!result.success) setErrorMessage(result.errorMessage || 'Unknown error occurred'); 
         }
     };
     
+    //Delete an activity
     const handleDeleteClick = async (id: string) => {
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/removeActivity/${idUser}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    activityID: id
-                }),
-            });
-
-            if (response.ok) {
+        if (idUser) {
+            let result = await DeleteActivity(idUser, id);
+            if (result.success) {
                 const updatedActivities: Activity[] = activities.filter((activity: Activity) => activity.id !== id);
                 setActivities(updatedActivities);
                 handleCloseDelActDialog();
             }
-        } catch (error) {
-            console.error(error);
+            else setErrorMessage(result.errorMessage || 'Unknown error occurred');
         }
     }
 
@@ -160,28 +134,19 @@ const ActivityTable: React.FC = () => {
     }
 
     const handleSave = async () => {
-        try {
-            if (!process.env.API_URL || !process.env.API_PORT) {
-                throw new Error('API_URL or API_PORT is not defined');
-            }
-            const response = await fetch(`http://${process.env.API_URL}:${process.env.API_PORT}/activity/newActivity/${idUser}`, {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, status: 'new' }),
-            });
-            if (response.ok) {
+        if (idUser) {
+            let result = await CreateActivity(idUser, name, 'new');
+            if (result.success) {
                 setSuccessMessage('Activity created');
-                const data = await response.json();
-                const newActivity = { id: data.id, name, status: 'new', isEditMode: false, originalName: name, originalStatus: 'new' };
+                const newActivity = { id: result.newActivityID, name, status: 'new', isEditMode: false, originalName: name, originalStatus: 'new' };
                 setActivities((prevActivities) => prevActivities.concat(newActivity));
             }
-            else setSuccessMessage('An error ocurr')
+            else {
+                setSuccessMessage('An error ocurr')
+                setErrorMessage(result.errorMessage || 'Unknown error occurred');
+            }
             handleCloseNewActModal();
             setName('');
-        } catch (error) {
-            console.log(error);
         }
     }
 
