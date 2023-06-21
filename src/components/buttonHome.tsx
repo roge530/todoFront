@@ -10,7 +10,7 @@ const ButtonHome: React.FC = () => {
         router.push('/');
     };
     return (
-        <Button variant='contained' onClick={handleClick}  className="bg-gray-700 text-white">
+        <Button onClick={handleClick} className="bg-rose-700 text-white mx-2 my-2">
             Home
         </Button>
     )

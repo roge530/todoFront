@@ -9,7 +9,7 @@ export default function HomeMenu() {
                     <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 <Button className="bg-rose-700 text-white mx-2 my-2">
-                    <Link href="/logIn">Log In</Link>
+                    <Link href="/login">Log In</Link>
                 </Button>
                 <Button className="bg-rose-700 text-white mx-2 my-2">
                     <Link href="/register">Register</Link>
