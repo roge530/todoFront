@@ -5,7 +5,7 @@ export default async function GetAllActivities(idUser: string): Promise<GetActiv
         if (!process.env.API_URL || !process.env.API_PORT) {
             throw new Error('API_URL or API_PORT is not defined');
         }
-        const response = await fetch(`http://${process.env.API_URL}/activity/${idUser}`);
+        const response = await fetch(`${process.env.API_URL}/activity/${idUser}`);
         if (response.ok) {
             const data = await response.json();
             return { success: true, activitiesData: data.activities };

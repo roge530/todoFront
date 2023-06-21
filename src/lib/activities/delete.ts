@@ -4,7 +4,7 @@ export default async function DeleteActivity(idUser:string, activityID: string):
         if (!process.env.API_URL || !process.env.API_PORT) {
             throw new Error('API_URL or API_PORT is not defined');
         }
-        const response = await fetch(`http://${process.env.API_URL}/activity/removeActivity/${idUser}`, {
+        const response = await fetch(`${process.env.API_URL}/activity/removeActivity/${idUser}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

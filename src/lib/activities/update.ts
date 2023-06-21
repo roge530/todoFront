@@ -4,7 +4,7 @@ export default async function UpdateActivity(idUser:string, idActivity: string, 
         if (!process.env.API_URL || !process.env.API_PORT) {
             throw new Error('API_URL or API_PORT is not defined');
         }
-        const response = await fetch(`http://${process.env.API_URL}/activity/editActivity`, {
+        const response = await fetch(`${process.env.API_URL}/activity/editActivity`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

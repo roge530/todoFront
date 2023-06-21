@@ -8,7 +8,7 @@ export default async function RegisterUser(data: RegisterForm): Promise<CommonRe
             throw new Error('API_URL or API_PORT is not defined');
         } 
         const response: AxiosResponse = await axios.post(
-            `http://${process.env.API_URL}/users/signUp`,
+            `${process.env.API_URL}/users/signUp`,
             data
         );
         return {success: true}
