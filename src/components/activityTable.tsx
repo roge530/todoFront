@@ -20,7 +20,9 @@ const ActivityTable: React.FC = () => {
     const [name, setName] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [ogActivities, setOGActivities] = useState<Activity[]>([]);
     const [errorMessage, setErrorMessage] = useState('');
+    const [searchValue, setSearchValue] = useState('');
 
     //Get all activities
     useEffect(() => {
@@ -35,6 +37,7 @@ const ActivityTable: React.FC = () => {
                         originalStatus: activity.status,
                     }));
                     setActivities(activitiesWithEditMode);
+                    setOGActivities(activitiesWithEditMode);
                 }
                 else setErrorMessage(result.errorMessage || 'Unknown error occurred');
             }
@@ -150,10 +153,34 @@ const ActivityTable: React.FC = () => {
         }
     }
 
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(`change: ${event.target.value}`)
+        setSearchValue(event.target.value);
+        if (event.target.value === '') {
+            setActivities(ogActivities);
+        }
+        else {
+            let lowerCase = event.target.value.toLowerCase()
+            let filterActivities = ogActivities.filter((activity: Activity) => {
+                return activity.status.toLowerCase().includes(lowerCase);
+            })
+            console.log(filterActivities)
+            setActivities(filterActivities);
+        }
+    };
+
     return (
         <section className='flex justify-center items-center h-screen'>
             <div>
                 <div className='flex justify-end'>
+                    <TextField
+                        label="Buscar"
+                        value={searchValue}
+                        onChange={handleSearch}
+                        variant="filled"
+                        color="warning"
+                        className="bg-rose-800 text-white mx-2 my-2"
+                    />
                     <Tooltip title={successMessage} open={!!successMessage} onClose={() => setSuccessMessage('')}>
                         <Button variant="contained" onClick={handleOpenNewActModal} className="bg-gray-700 text-white">
                             New Activity
