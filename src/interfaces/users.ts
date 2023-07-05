@@ -12,4 +12,7 @@ export interface RegisterForm {
 export interface LoginResult {
     success: boolean;
     errorMessage?: string;
+    token?: string;
+    id?: string;
+    name?: string;
 }

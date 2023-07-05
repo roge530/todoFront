@@ -1,6 +1,7 @@
 'use client'
 import { Button } from "@mui/material"
 import Link from "next/link"
+import DemoLogin from "./demoLogin"
 export default function HomeMenu() {
     return (
         <div className="flex justify-center items-center h-screen">
@@ -14,6 +15,7 @@ export default function HomeMenu() {
                 <Button className="bg-rose-700 text-white mx-2 my-2">
                     <Link href="/register">Register</Link>
                 </Button>
+                <DemoLogin/>
             </div>
         </div>
     )
