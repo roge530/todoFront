@@ -1,20 +1,20 @@
 import { signIn, signOut, useSession } from "next-auth/react"
+import { Button } from "@mui/material"
 const DemoLogin = () => {
     const {data: session} = useSession();
     if (session && session.user) {
         return(
-            <div>
-                <p>{session.user.name}</p>
-                <button onClick={()=>signOut()} className="text-red-600">
+            <div className="flex flex-row align-center">
+                <Button onClick={()=>signOut()} className="bg-rose-700 text-white mx-2 my-2">
                     Sign out +
-                </button>
+                </Button>
             </div>
         )
     }
     return (
-        <button onClick={() => signIn()} className="text-green-600">
+        <Button onClick={() => signIn()} className="bg-rose-700 text-white mx-2 my-2">
             Sign in +
-        </button>
+        </Button>
     )
 }
 

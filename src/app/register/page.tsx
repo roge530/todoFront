@@ -29,7 +29,7 @@ export default function Register() {
         event.preventDefault();
 
         let result = await RegisterUser(formData);
-        if (result.success) router.push("/logIn");
+        if (result.success) router.push("/");
         else setErrorMessage(result.errorMessage || 'Unknown error occurred');
     }
 
@@ -40,9 +40,6 @@ export default function Register() {
     return (
         <section className="flex items-center justify-center h-screen">
             <div className="border-2 border-rose-500 p-4">
-                <div className="px-4 py-2">
-                    <ButtonHome/>
-                </div>
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-row items-center justify-evenly px-4 py-2">
                             <TextField
@@ -80,9 +77,7 @@ export default function Register() {
                             />
                     </div>
                     <div className="flex justify-between px-4 py-2">
-                        <Button className="flex bg-rose-700 text-white mx-2 my-2">
-                            <Link href="/login">Already have an account?</Link>
-                        </Button>
+                        <ButtonHome/>
                         <Button
                             type="submit"
                             className="bg-rose-700 text-white mx-2 my-2"

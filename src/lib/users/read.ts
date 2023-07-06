@@ -9,7 +9,7 @@ export default async function Login(data: LoginForm): Promise<LoginResult> {
             throw new Error('API_URL or API_PORT is not defined');
         }
         const response: AxiosResponse = await axios.post(
-            `http://${process.env.API_URL}/users/logIn`,
+            `${process.env.API_URL}/users/logIn`,
             data
         );
 
