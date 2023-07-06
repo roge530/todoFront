@@ -19,7 +19,7 @@ const handler = NextAuth({
                     const res = await Login(formatedCredentials)
                     const user = { id: res.id as string, name: res.name as string, token: res.token as string}
                     if (res.success) {
-                        return user
+                        return user;
                     }
                     return null
                 }
@@ -27,6 +27,12 @@ const handler = NextAuth({
             }
         })
     ],
+    session: {
+        maxAge: 5
+    },
+    jwt: {
+        maxAge: 5
+    },
     callbacks: {
         async jwt({ token, user}) {
             return { ...token, ...user};

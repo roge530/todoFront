@@ -3,17 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, Button, Modal, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
-import Cookies from 'js-cookie';
 import { Activity } from '@/interfaces/activities';
 import GetAllActivities from '@/lib/activities/read';
 import ErrorModal from './errorModal';
 import UpdateActivity from '@/lib/activities/update';
 import DeleteActivity from '@/lib/activities/delete';
 import CreateActivity from '@/lib/activities/create';
+import { useSession } from 'next-auth/react';
 
 const ActivityTable: React.FC = () => {
-    const token = Cookies.get('token');
-    const idUser = Cookies.get('id');
+    const {data: session} = useSession();
+    const token = session?.user.token;
+    const idUser = session?.user.id;
     const [openNewActModal, setOpenNewActModal] = useState(false);
     const [openDelActDialog, setOpenDelActDialog] = useState(false);
     const [activityToDelete, setActivityToDelete] = useState('');
